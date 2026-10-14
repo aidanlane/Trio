@@ -11,14 +11,13 @@ on:
       - '**.yml'
       - '**.txt'
 
+  # DO NOT MERGE: fork-only CI test. Runs on pushes to ci-test/** with no path filter.
   push:
     branches:
       - dev
-    paths-ignore:
-      - '**.md'
-      - '**/README'
-      - '**.yml'
-      - '**.txt'
+      - 'ci-test/**'
+
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -28,7 +27,7 @@ jobs:
   algorithm-package:
     name: Algorithm Package (swift test)
     runs-on: macos-26
-    if: github.repository_owner == 'nightscout'
+    if: github.repository_owner == 'nightscout' || github.repository_owner == 'aidanlane'
     # The parity goldens were recorded in this zone and skip themselves outside it.
     env:
       TZ: Europe/Berlin
@@ -100,7 +99,7 @@ jobs:
   test:
     name: Run Unit Tests
     runs-on: macos-26
-    if: github.repository_owner == 'nightscout'
+    if: github.repository_owner == 'nightscout' || github.repository_owner == 'aidanlane'
 
     env:
       DESTINATION: "platform=iOS Simulator,name=iPhone 17,OS=26.2"
