@@ -29,6 +29,9 @@ jobs:
     name: Algorithm Package (swift test)
     runs-on: macos-26
     if: github.repository_owner == 'nightscout'
+    # The parity goldens were recorded in this zone and skip themselves outside it.
+    env:
+      TZ: Europe/Berlin
 
     steps:
       - name: Select Xcode version
@@ -52,7 +55,18 @@ jobs:
         run: swift --version
 
       - name: Run algorithm tests
-        run: time swift test --package-path AlgorithmPackage
+        run: |
+          set -o pipefail
+          time swift test --package-path AlgorithmPackage 2>&1 | tee swift-test.log
+
+      # A skipped parity suite still exits 0, so assert it actually ran.
+      - name: Assert golden parity ran
+        run: |
+          if grep -q 'Suite "OpenAPSSwift golden parity" skipped' swift-test.log; then
+            echo "::error title=Golden parity skipped::TZ is not Europe/Berlin in this job"
+            exit 1
+          fi
+        shell: bash
 
       - name: Save cache
         # PRs read the dev cache but never write it — avoids churning the
@@ -263,6 +277,15 @@ jobs:
             2>&1 | tee xcodebuild.log || _rc=$?
           echo "Run tests|$(( $(date +%s) - _start ))" >> "$GITHUB_WORKSPACE/.timings"
           exit ${_rc:-0}
+
+      # A skipped parity suite still exits 0, so assert it actually ran.
+      - name: Assert golden parity ran
+        run: |
+          if grep -q 'Suite "OpenAPSSwift golden parity" skipped' xcodebuild.log; then
+            echo "::error title=Golden parity skipped::TZ is not Europe/Berlin in the test runner"
+            exit 1
+          fi
+        shell: bash
 
       # Report the ACTUAL xcodebuild test outcome, not a grep guess. A crash or
       # a test-host launch failure exits 65 without a "Failing tests:" section,
