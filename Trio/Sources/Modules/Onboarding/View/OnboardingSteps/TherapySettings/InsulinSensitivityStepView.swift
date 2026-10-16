@@ -59,7 +59,7 @@ struct InsulinSensitivityStepView: View {
 
                     TherapySettingEditorView(
                         items: $therapyItems,
-                        unit: state.units == .mgdL ? .mgdLPerUnit : .mmolLPerUnit,
+                        unit: state.units.sensitivityUnit,
                         timeOptions: state.isfTimeValues,
                         valueOptions: state.isfRateValues,
                         validateOnDelete: state.validateISF,

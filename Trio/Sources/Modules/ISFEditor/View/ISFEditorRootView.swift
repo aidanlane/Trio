@@ -95,7 +95,7 @@ extension ISFEditor {
                                 // ISF list
                                 TherapySettingEditorView(
                                     items: $state.therapyItems,
-                                    unit: state.units == .mgdL ? .mgdLPerUnit : .mmolLPerUnit,
+                                    unit: state.units.sensitivityUnit,
                                     timeOptions: state.timeValues,
                                     valueOptions: state.rateValues,
                                     validateOnDelete: state.validate,

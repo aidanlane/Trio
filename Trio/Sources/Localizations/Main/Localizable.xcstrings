@@ -10914,6 +10914,9 @@
         }
       }
     },
+    "%@, changed" : {
+      "comment" : "Accessibility: a Dynamic ISF Explorer value that isn't the user's setting"
+    },
     "%@: %@" : {
       "localizations" : {
         "bg" : {
@@ -25021,6 +25024,9 @@
           }
         }
       }
+    },
+    "10-Day Average" : {
+
     },
     "10%:" : {
       "localizations" : {
@@ -119172,6 +119178,12 @@
         }
       }
     },
+    "Dynamic ISF chart" : {
+
+    },
+    "Dynamic ISF Explorer" : {
+
+    },
     "Dynamic ISF is off, so those terms will not show up." : {
       "localizations" : {
         "bg" : {
@@ -119301,6 +119313,12 @@
           }
         }
       }
+    },
+    "Dynamic ISF needs a total daily dose above zero." : {
+
+    },
+    "Dynamic ISF needs Autosens Max and Min to differ, with one at least 100% and the other at most 100%." : {
+
     },
     "Dynamic ISF produces a Dynamic Ratio, replacing the Autosens Ratio, determining how much your profile ISF will be adjusted every loop cycle, ensuring it stays within safe limits set by your Autosens Min/Max settings. It provides more precise insulin dosing by responding to changes in insulin needs throughout the day." : {
       "localizations" : {
@@ -147167,6 +147185,9 @@
           }
         }
       }
+    },
+    "From your schedule for this time of day." : {
+
     },
     "Full Bolus" : {
       "comment" : "For the  Bolus View pop-up",
@@ -176528,6 +176549,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "胰島素敏感度與碳水比例"
+          }
+        }
+      }
+    },
+    "ISF from %@ at low glucose to %@ at high glucose, in %@" : {
+      "comment" : "Accessibility: chart summary",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "ISF from %1$@ at low glucose to %2$@ at high glucose, in %3$@"
           }
         }
       }
@@ -240909,6 +240941,9 @@
         }
       }
     },
+    "Profile ISF" : {
+
+    },
     "Profile Override" : {
       "comment" : "Service Section",
       "extractionState" : "manual",
@@ -253110,6 +253145,9 @@
         }
       }
     },
+    "Reset" : {
+
+    },
     "Reset and retry send" : {
       "localizations" : {
         "bg" : {
@@ -260389,6 +260427,9 @@
           }
         }
       }
+    },
+    "See how Dynamic ISF adjusts ISF as glucose changes, and try different settings without saving them." : {
+
     },
     "See what's new in this version." : {
       "localizations" : {
@@ -271767,6 +271808,9 @@
           }
         }
       }
+    },
+    "Shows what Dynamic ISF does when enabled and active. Starts from your current settings and TDD. Does not consider overrides or temp targets. Changes here are not saved." : {
+
     },
     "Sigmoid" : {
       "localizations" : {
@@ -341411,6 +341455,9 @@
     "Weighted hypoglycemia" : {
       "comment" : "Hypoglycemia component multiplied by its GRI weight."
     },
+    "Weighted TDD" : {
+
+    },
     "Welcome to Trio" : {
       "localizations" : {
         "bg" : {
@@ -347061,6 +347108,9 @@
         }
       }
     },
+    "Without a custom peak time, Dynamic ISF uses 65 min for rapid-acting and 50 min for ultra-rapid insulin." : {
+
+    },
     "𝒳 = Max SMB Basal Minutes" : {
       "localizations" : {
         "bg" : {
@@ -351122,6 +351172,9 @@
           }
         }
       }
+    },
+    "Your Settings" : {
+
     },
     "Your therapy settings (basal rates, carb ratios, insulin sensitivities and glucose targets) are carried over." : {
       "localizations" : {

@@ -406,6 +406,13 @@ enum TherapySettingUnit: String, CaseIterable {
     }
 }
 
+extension GlucoseUnits {
+    /// The unit insulin sensitivity is shown in.
+    var sensitivityUnit: TherapySettingUnit {
+        self == .mgdL ? .mgdLPerUnit : .mmolLPerUnit
+    }
+}
+
 #Preview {
     @Previewable @State var previewItems = [
         TherapySettingItem(time: 0, value: 1.0),
