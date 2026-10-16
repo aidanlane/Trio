@@ -25018,6 +25018,9 @@
         }
       }
     },
+    "10-Day Average" : {
+
+    },
     "10%:" : {
       "localizations" : {
         "bg" : {
@@ -119093,6 +119096,15 @@
         }
       }
     },
+    "Dynamic ISF cannot be calculated with these values. It needs a total daily dose above zero and an Autosens Max of at least 100%, with Autosens Min below it." : {
+
+    },
+    "Dynamic ISF chart" : {
+
+    },
+    "Dynamic ISF Explorer" : {
+
+    },
     "Dynamic ISF is off, so those terms will not show up." : {
       "localizations" : {
         "bg" : {
@@ -147078,6 +147090,9 @@
           }
         }
       }
+    },
+    "From your schedule for this time of day." : {
+
     },
     "Full Bolus" : {
       "comment" : "For the  Bolus View pop-up",
@@ -176360,6 +176375,17 @@
         }
       }
     },
+    "ISF from %@ at low glucose to %@ at high glucose, in %@" : {
+      "comment" : "Accessibility: chart summary",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "ISF from %1$@ at low glucose to %2$@ at high glucose, in %3$@"
+          }
+        }
+      }
+    },
     "ISF/CR" : {
       "comment" : "Option for both ISF and CR",
       "localizations" : {
@@ -177920,6 +177946,9 @@
           }
         }
       }
+    },
+    "Last 24 Hours" : {
+
     },
     "Last Blood Sugar prediction" : {
       "extractionState" : "manual",
@@ -240662,6 +240691,9 @@
         }
       }
     },
+    "Profile ISF" : {
+
+    },
     "Profile Override" : {
       "comment" : "Service Section",
       "extractionState" : "manual",
@@ -252855,6 +252887,9 @@
         }
       }
     },
+    "Reset" : {
+
+    },
     "Reset and retry send" : {
       "localizations" : {
         "bg" : {
@@ -260127,6 +260162,9 @@
           }
         }
       }
+    },
+    "See how Dynamic ISF adjusts ISF as glucose changes, and try different settings without saving them." : {
+
     },
     "See what's new in this version." : {
       "localizations" : {
@@ -271494,6 +271532,9 @@
           }
         }
       }
+    },
+    "Shows what Dynamic ISF does when enabled and active. Starts from your current settings and TDD. Does not consider overrides or temp targets. Changes here are not saved." : {
+
     },
     "Sigmoid" : {
       "localizations" : {
@@ -341106,6 +341147,16 @@
         }
       }
     },
+    "Weighted TDD: %@ %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Weighted TDD: %1$@ %2$@"
+          }
+        }
+      }
+    },
     "Welcome to Trio" : {
       "localizations" : {
         "bg" : {
@@ -346756,6 +346807,9 @@
         }
       }
     },
+    "Without a custom peak time, Dynamic ISF uses 65 min for rapid-acting and 50 min for ultra-rapid insulin." : {
+
+    },
     "𝒳 = Max SMB Basal Minutes" : {
       "localizations" : {
         "bg" : {
@@ -350817,6 +350871,9 @@
           }
         }
       }
+    },
+    "Your Settings" : {
+
     },
     "Your therapy settings (basal rates, carb ratios, insulin sensitivities and glucose targets) are carried over." : {
       "localizations" : {
