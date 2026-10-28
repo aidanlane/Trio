@@ -36,6 +36,7 @@
 		8006AC9334B3E6D91E4B2EBC /* DynamicISFExplorerProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA950059A11D227770677F5E /* DynamicISFExplorerProvider.swift */; };
 		A046B421AF1B04ECEEB3D600 /* DynamicISFExplorerCurve.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF41544DA85D98CA51B5B4D2 /* DynamicISFExplorerCurve.swift */; };
 		B189ABA28726D4896CBD572C /* DynamicISFExplorerStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A002FC1E5552112D6B400069 /* DynamicISFExplorerStateModel.swift */; };
+		8C91E737387B00DCEEEF5C38 /* DynamicISFExplorerChartAxes.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0FB5F1B3902F893E76AE110 /* DynamicISFExplorerChartAxes.swift */; };
 		B8C8478A24F0FE3B711C452C /* DynamicISFExplorerRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61D03BAB8095B645D6CDF40A /* DynamicISFExplorerRootView.swift */; };
 		70C7CDE436E3C17F7D09E51C /* DynamicISFExplorerChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1CB8EFFA609B11875D9E30A /* DynamicISFExplorerChart.swift */; };
 		1967DFBE29D052C200759F30 /* Icons.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1967DFBD29D052C200759F30 /* Icons.swift */; };
@@ -310,6 +311,7 @@
 		3BA8D1B32DDB87150006191F /* DecimalExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BA8D1B22DDB870F0006191F /* DecimalExtensions.swift */; };
 		3BAAE60C2DE7766C0049589B /* DynamicISFEnableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAAE60B2DE776630049589B /* DynamicISFEnableTests.swift */; };
 		7E7AC3E13CA8835A7566386A /* DynamicISFExplorerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 373A84BC44561D22DBBC1913 /* DynamicISFExplorerTests.swift */; };
+		88BB39B2AFB99BD99E6AEE34 /* MockFileStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2F601DAD79F8516CECDCA2 /* MockFileStorage.swift */; };
 		3BAC929B2E55FF5300B853DA /* DetermineBasalEnableSmbTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAC929A2E55FF4F00B853DA /* DetermineBasalEnableSmbTests.swift */; };
 		3BAC929D2E56A85400B853DA /* TempBasalFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAC929C2E56A84E00B853DA /* TempBasalFunctions.swift */; };
 		3BAC92CD2E57859D00B853DA /* SetTempBasalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAC92CC2E57859600B853DA /* SetTempBasalTests.swift */; };
@@ -1218,6 +1220,7 @@
 		DA950059A11D227770677F5E /* DynamicISFExplorerProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicISFExplorerProvider.swift; sourceTree = "<group>"; };
 		FF41544DA85D98CA51B5B4D2 /* DynamicISFExplorerCurve.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicISFExplorerCurve.swift; sourceTree = "<group>"; };
 		A002FC1E5552112D6B400069 /* DynamicISFExplorerStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicISFExplorerStateModel.swift; sourceTree = "<group>"; };
+		E0FB5F1B3902F893E76AE110 /* DynamicISFExplorerChartAxes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicISFExplorerChartAxes.swift; sourceTree = "<group>"; };
 		61D03BAB8095B645D6CDF40A /* DynamicISFExplorerRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicISFExplorerRootView.swift; sourceTree = "<group>"; };
 		C1CB8EFFA609B11875D9E30A /* DynamicISFExplorerChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicISFExplorerChart.swift; sourceTree = "<group>"; };
 		1967DFBD29D052C200759F30 /* Icons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Icons.swift; sourceTree = "<group>"; };
@@ -1487,6 +1490,7 @@
 		3BA8D1B22DDB870F0006191F /* DecimalExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DecimalExtensions.swift; sourceTree = "<group>"; };
 		3BAAE60B2DE776630049589B /* DynamicISFEnableTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicISFEnableTests.swift; sourceTree = "<group>"; };
 		373A84BC44561D22DBBC1913 /* DynamicISFExplorerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicISFExplorerTests.swift; sourceTree = "<group>"; };
+		9A2F601DAD79F8516CECDCA2 /* MockFileStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockFileStorage.swift; sourceTree = "<group>"; };
 		3BAC929A2E55FF4F00B853DA /* DetermineBasalEnableSmbTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetermineBasalEnableSmbTests.swift; sourceTree = "<group>"; };
 		3BAC929C2E56A84E00B853DA /* TempBasalFunctions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempBasalFunctions.swift; sourceTree = "<group>"; };
 		3BAC92CC2E57859600B853DA /* SetTempBasalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetTempBasalTests.swift; sourceTree = "<group>"; };
@@ -2469,6 +2473,7 @@
 				DA950059A11D227770677F5E /* DynamicISFExplorerProvider.swift */,
 				FF41544DA85D98CA51B5B4D2 /* DynamicISFExplorerCurve.swift */,
 				A002FC1E5552112D6B400069 /* DynamicISFExplorerStateModel.swift */,
+				E0FB5F1B3902F893E76AE110 /* DynamicISFExplorerChartAxes.swift */,
 				1DB1633D678CF781190F5292 /* View */,
 			);
 			path = DynamicISFExplorer;
@@ -4869,6 +4874,7 @@
 		DDDD0FFD2F4E231600F9C645 /* Mocks */ = {
 			isa = PBXGroup;
 			children = (
+				9A2F601DAD79F8516CECDCA2 /* MockFileStorage.swift */,
 				DDDD0FFE2F4E231B00F9C645 /* MockTDDStorage.swift */,
 			);
 			path = Mocks;
@@ -6050,6 +6056,7 @@
 				8006AC9334B3E6D91E4B2EBC /* DynamicISFExplorerProvider.swift in Sources */,
 				A046B421AF1B04ECEEB3D600 /* DynamicISFExplorerCurve.swift in Sources */,
 				B189ABA28726D4896CBD572C /* DynamicISFExplorerStateModel.swift in Sources */,
+				8C91E737387B00DCEEEF5C38 /* DynamicISFExplorerChartAxes.swift in Sources */,
 				B8C8478A24F0FE3B711C452C /* DynamicISFExplorerRootView.swift in Sources */,
 				70C7CDE436E3C17F7D09E51C /* DynamicISFExplorerChart.swift in Sources */,
 				E00EEC0327368630002FF094 /* ServiceAssembly.swift in Sources */,
@@ -6344,6 +6351,7 @@
 				BD8FC05B2D6618AF00B95AED /* DeterminationStorageTests.swift in Sources */,
 				3BAAE60C2DE7766C0049589B /* DynamicISFEnableTests.swift in Sources */,
 				7E7AC3E13CA8835A7566386A /* DynamicISFExplorerTests.swift in Sources */,
+				88BB39B2AFB99BD99E6AEE34 /* MockFileStorage.swift in Sources */,
 				3BAC929B2E55FF5300B853DA /* DetermineBasalEnableSmbTests.swift in Sources */,
 				CE1F6DD92BADF4620064EB8D /* PluginManagerTests.swift in Sources */,
 				DC01A00E2E9F100000000005 /* DeviceCatalogTests.swift in Sources */,

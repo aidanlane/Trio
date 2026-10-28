@@ -20,8 +20,9 @@ extension DynamicISFExplorer {
         }
 
         /// Whether a value differs from the user's setting, so its row can be marked. Glucose values land back on the
-        /// saved mg/dL value whenever they display as it, so this matches what's shown.
-        func isChanged<Value: Equatable>(_ keyPath: KeyPath<Inputs, Value>) -> Bool {
+        /// saved mg/dL value whenever they display as it, so this matches what's shown. Writable key paths keep this to
+        /// stored inputs: the weighted TDD is derived, and compared as shown by `isWeightedTDDChanged`.
+        func isChanged<Value: Equatable>(_ keyPath: WritableKeyPath<Inputs, Value>) -> Bool {
             inputs[keyPath: keyPath] != savedInputs[keyPath: keyPath]
         }
 
@@ -147,6 +148,20 @@ extension DynamicISFExplorer {
         /// Whole minutes.
         static func minutes(_ value: Decimal, locale: Locale = .current) -> String {
             value.formatted(.number.precision(.fractionLength(0)).locale(locale))
+        }
+
+        /// The values in `range` that can take the most room, as `format` writes them, so a row can keep room for the
+        /// widest: the ends, and the top less 0.1, 0.01 and 0.001. A value with every decimal a format shows, to 0.1 U
+        /// or 0.1%, can be wider than either end, as 46.4 U is wider than 300 U.
+        static func widest(in range: ClosedRange<Decimal>, format: (Decimal) -> String) -> [String] {
+            let top = range.upperBound
+            let values = [range.lowerBound, top, top - 0.1, top - 0.01, top - 0.001]
+            var widest: [String] = []
+            // Once each, as the row tells them apart by their text
+            for written in values.map(format) where !widest.contains(written) {
+                widest.append(written)
+            }
+            return widest
         }
     }
 }

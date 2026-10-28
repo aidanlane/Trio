@@ -35,13 +35,15 @@ extension DynamicISFExplorer {
             }
             .background(appState.trioBackgroundColor(for: colorScheme))
             .onAppear(perform: configureView)
-            .navigationTitle("Dynamic ISF Explorer")
+            .navigationTitle(Text("Dynamic ISF Explorer", comment: "Title of the screen that charts Dynamic ISF"))
             // The large title would take room from the values below the chart
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Reset", action: state.reset)
-                        .disabled(!state.hasChanges)
+                    Button(action: state.reset) {
+                        Text("Reset", comment: "Button that puts the Dynamic ISF Explorer's values back to the user's settings")
+                    }
+                    .disabled(!state.hasChanges)
                 }
             }
         }
@@ -66,10 +68,19 @@ extension DynamicISFExplorer {
                         ForEach(state.unavailable, id: \.self) { reason in
                             switch reason {
                             case .noTDD:
-                                Text("Dynamic ISF needs a total daily dose above zero.")
+                                Text(
+                                    "Dynamic ISF needs a total daily dose above zero.",
+                                    comment: "Shown in place of the Dynamic ISF Explorer's chart"
+                                )
                             case .noAutosensRoom:
                                 Text(
-                                    "Dynamic ISF needs Autosens Max and Min to differ, with one at least 100% and the other at most 100%."
+                                    "Dynamic ISF needs Autosens Max and Min to differ, with one at least 100% and the other at most 100%.",
+                                    comment: "Shown in place of the Dynamic ISF Explorer's chart"
+                                )
+                            case .noWeakestLimit:
+                                Text(
+                                    "Autosens Max and Min need to be above zero to chart Dynamic ISF.",
+                                    comment: "Shown in place of the Dynamic ISF Explorer's chart"
                                 )
                             }
                         }
@@ -92,7 +103,8 @@ extension DynamicISFExplorer {
                 content: {},
                 footer: {
                     Text(
-                        "Shows what Dynamic ISF does when enabled and active. Starts from your current settings and TDD. Does not consider overrides or temp targets. Changes here are not saved."
+                        "Shows what Dynamic ISF does when enabled and active. Starts from your current settings and TDD. Does not consider overrides or temp targets. Changes here are not saved.",
+                        comment: "Introduction to the Dynamic ISF Explorer, which is the subject of Shows, Starts and Does"
                     )
                 }
             )
@@ -137,7 +149,8 @@ extension DynamicISFExplorer {
                 footer: {
                     if state.inputs.uses(\.insulinPeakTime) {
                         Text(
-                            "Without a custom peak time, Dynamic ISF uses 65 min for rapid-acting and 50 min for ultra-rapid insulin."
+                            "Without a custom peak time, Dynamic ISF uses 65 min for rapid-acting and 50 min for ultra-rapid insulin.",
+                            comment: "Footer below Insulin Peak Time in the Dynamic ISF Explorer; min means minutes"
                         )
                     }
                 }
@@ -185,7 +198,7 @@ extension DynamicISFExplorer {
                     }
                 },
                 header: { Text("Profile") },
-                footer: { Text("From your schedule for this time of day.") }
+                footer: { Text("From your schedule for this time of day.", comment: "Footer below the profile ISF and target") }
             ).listRowBackground(Color.chart)
         }
 
@@ -203,7 +216,7 @@ extension DynamicISFExplorer {
                         format: { Format.insulin($0) }
                     )
                     stepper(
-                        String(localized: "10-Day Average"),
+                        String(localized: "10-Day Average", comment: "Row for the total daily dose averaged over 10 days"),
                         value: $state.inputs.tddTenDayAverage,
                         changed: state.isChanged(\.tddTenDayAverage),
                         in: Inputs.tddRange,
@@ -225,15 +238,16 @@ extension DynamicISFExplorer {
 
         /// The weighted TDD the rows above blend, marked like them when it differs from the one for the user's settings.
         private var weightedTDDRow: some View {
+            let title = String(localized: "Weighted TDD", comment: "Row for the weighted average of the TDDs above")
             let weightedTDD = Format.insulin(state.inputs.weightedTDD)
             let changed = state.isWeightedTDDChanged
 
-            return LabeledContent("Weighted TDD") {
+            return LabeledContent(title) {
                 marked(Text(verbatim: "\(weightedTDD) \(insulinUnit)"), if: changed)
                     .monospacedDigit()
             }
             .accessibilityElement(children: .ignore)
-            .accessibilityLabel(Text("Weighted TDD"))
+            .accessibilityLabel(Text(title))
             .accessibilityValue(spoken("\(weightedTDD) \(UnitSpelling.spoken("U"))", changed: changed))
         }
 
@@ -258,13 +272,11 @@ extension DynamicISFExplorer {
             format: (Decimal) -> String
         ) -> some View {
             let formatted = format(value.wrappedValue)
-            let lowest = format(range.lowerBound)
-            let highest = format(range.upperBound)
+            let widest = Format.widest(in: range, format: format)
             let stacked = dynamicTypeSize >= .xxxLarge
             let shown = ZStack(alignment: stacked ? .topLeading : .trailing) {
                 // Bold, as a marked value is
-                Text(verbatim: "\(lowest) \(unit)").bold().hidden()
-                Text(verbatim: "\(highest) \(unit)").bold().hidden()
+                ForEach(widest, id: \.self) { Text(verbatim: "\($0) \(unit)").bold().hidden() }
                 marked(Text(verbatim: "\(formatted) \(unit)"), if: changed)
             }
             .monospacedDigit()
@@ -318,7 +330,7 @@ extension DynamicISFExplorer {
         private func glucoseStepper(
             _ title: String,
             value: Binding<Decimal>,
-            input: KeyPath<Inputs, Decimal>,
+            input: WritableKeyPath<Inputs, Decimal>,
             in range: ClosedRange<Decimal>,
             unit: String,
             spokenUnit: String

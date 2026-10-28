@@ -175,7 +175,8 @@ extension DynamicSettings {
                     },
                     footer: {
                         Text(
-                            "See how Dynamic ISF adjusts ISF as glucose changes, and try different settings without saving them."
+                            "See how Dynamic ISF adjusts ISF as glucose changes, and try different settings without saving them.",
+                            comment: "Footer below the link to the Dynamic ISF Explorer"
                         )
                     }
                 ).settingsSearchTarget(label: String(localized: "Dynamic ISF Explorer"))

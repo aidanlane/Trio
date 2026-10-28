@@ -1,4 +1,6 @@
+import CoreData
 import Foundation
+import Swinject
 import Testing
 
 @testable import Trio
@@ -7,6 +9,7 @@ import Testing
     typealias Inputs = DynamicISFExplorer.Inputs
     typealias Curve = DynamicISFExplorer.Curve
     typealias Format = DynamicISFExplorer.Format
+    typealias ChartAxes = DynamicISFExplorer.ChartAxes
 
     /// None of these are defaults or the fixed peak times, so a value that never reaches the algorithm fails a test.
     static let inputs = Inputs(
@@ -63,6 +66,36 @@ import Testing
         #expect(curve.points.last?.sensitivity == 30)
         #expect(curve.profileSensitivity == 45)
         #expect(curve.sensitivityLimits == 30 ... 60)
+    }
+
+    @Test("Dynamic ISF adjusts between where the curve leaves its first ISF and shows its last") func adjustingRange() throws {
+        let curve = try #require(Curve(inputs: inputs))
+        // 60 mg/dL/U up to 90 mg/dL, and 30 from 315 mg/dL, where 30.2 shows as 30 though the limit comes at 325
+        #expect(curve.adjustingRange(units: .mgdL) == 90 ... 315)
+        // To 0.1 mmol/L/U, 31.4 mg/dL/U at 290 mg/dL already shows as 1.7, as 30 does
+        #expect(curve.adjustingRange(units: .mmolL) == 90 ... 290)
+
+        // A stronger factor moves it, while the curve's ends stay on the limits
+        var stronger = inputs
+        stronger.adjustmentFactor = 1
+        let strongerCurve = try #require(Curve(inputs: stronger))
+        #expect(strongerCurve.points.first?.sensitivity == 60)
+        #expect(strongerCurve.points.last?.sensitivity == 30)
+        #expect(strongerCurve.adjustingRange(units: .mgdL) == 55 ... 155)
+
+        // A sigmoid curve only nears its limits, so its range ends where 30.4 shows as 30
+        var sigmoid = inputs
+        sigmoid.sigmoid = true
+        let sigmoidCurve = try #require(Curve(inputs: sigmoid))
+        #expect(sigmoidCurve.adjustingRange(units: .mgdL) == 45 ... 250)
+
+        // None for a curve a small TDD pins to one limit throughout
+        var flat = inputs
+        flat.tddLast24Hours = 2
+        flat.tddTenDayAverage = 2
+        let flatCurve = try #require(Curve(inputs: flat))
+        #expect(flatCurve.points.allSatisfy { $0.sensitivity == 60 })
+        #expect(flatCurve.adjustingRange(units: .mgdL) == nil)
     }
 
     @Test("Sigmoid curve crosses the profile ISF at the target") func sigmoidCrossesProfileAtTarget() throws {
@@ -146,7 +179,7 @@ import Testing
         "There's a reason exactly when there's no curve, however the TDD and Autosens limits are set",
         arguments: [false, true]
     ) func unavailableMatchesCurve(sigmoid: Bool) {
-        let limits: [Decimal] = [0.5, 0.8, 1, 1.2, 2]
+        let limits: [Decimal] = [-0.5, 0, 0.5, 0.8, 1, 1.2, 2]
         for autosensMin in limits {
             for autosensMax in limits {
                 for tdd: Decimal in [0, 0.5, 40] {
@@ -164,6 +197,28 @@ import Testing
                 }
             }
         }
+    }
+
+    @Test(
+        "No curve, rather than a crash, with an Autosens limit of 0% or below",
+        arguments: [Decimal(0), -0.5]
+    ) func autosensLimitAtOrBelowZero(limit: Decimal) {
+        // Only a hand-edited settings file can set one. The loop would still run Dynamic ISF, but there's no range to chart.
+        var lowMin = inputs
+        lowMin.autosensMin = limit
+        #expect(Curve(inputs: lowMin) == nil)
+        #expect(Curve.unavailable(for: lowMin) == [.noWeakestLimit])
+
+        // Either way round, as in the algorithm
+        var lowMax = inputs
+        lowMax.autosensMin = 1.5
+        lowMax.autosensMax = limit
+        #expect(Curve(inputs: lowMax) == nil)
+        #expect(Curve.unavailable(for: lowMax) == [.noWeakestLimit])
+
+        // Listed after what turns Dynamic ISF off
+        lowMax.autosensMin = limit
+        #expect(Curve.unavailable(for: lowMax) == [.noAutosensRoom, .noWeakestLimit])
     }
 
     @Test("Each formula shows the inputs its curve uses, and only those", arguments: [
@@ -214,6 +269,41 @@ import Testing
         #expect(Format.percent(0.9234, decimals: 0, locale: english) == "92")
 
         #expect(Format.minutes(65, locale: english) == "65")
+    }
+
+    @Test("A row keeps room for the widest value it can show, which can have a decimal neither end has") func widest() {
+        let english = Locale(identifier: "en_US")
+        let danish = Locale(identifier: "da_DK")
+
+        // A TDD of 46.4 U is wider than 300 U, and an Autosens Min off the 5% steps, such as 99.9%, wider than 100%
+        #expect(Format.widest(in: Inputs.tddRange) { Format.insulin($0, locale: english) } == ["0", "300", "299.9"])
+        #expect(Format.widest(in: 0.5 ... 1) { Format.percent($0, locale: danish) } == ["50", "100", "90", "99", "99,9"])
+        // Glucose and minutes always show the same decimals, so their ends are widest
+        #expect(Format.widest(in: 9 ... 540) { Format.glucose(inUnits: $0, units: .mgdL, locale: english) } == ["9", "540"])
+        #expect(Format.widest(in: 35 ... 120) { Format.minutes($0, locale: english) } == ["35", "120"])
+
+        // Every value a TDD or factor row can show, on its steps or off them, fits the room one of them takes. The row's
+        // digits are all as wide, so a value fits where one with at least as many digits and other characters does.
+        func fits(_ value: String, in widest: [String]) -> Bool {
+            func digits(_ written: String) -> Int { written.filter(\.isNumber).count }
+            return widest.contains { digits($0) >= digits(value) && $0.count - digits($0) >= value.count - digits(value) }
+        }
+        func overflowing(_ range: ClosedRange<Decimal>, by finest: Decimal, _ format: (Decimal) -> String) -> [String] {
+            let widest = Format.widest(in: range, format: format)
+            return stride(from: range.lowerBound, through: range.upperBound, by: finest).map(format)
+                .filter { !fits($0, in: widest) }
+        }
+        #expect(overflowing(Inputs.tddRange, by: 0.1) { Format.insulin($0, locale: english) } == [])
+        let settings = PickerSettingsProvider.shared.settings
+        for setting in [
+            settings.adjustmentFactor,
+            settings.adjustmentFactorSigmoid,
+            settings.autosensMax,
+            settings.autosensMin,
+            settings.weightPercentage
+        ] {
+            #expect(overflowing(setting.min ... setting.max, by: 0.001) { Format.percent($0, locale: english) } == [])
+        }
     }
 
     @Test("Autosens limits work either way round, as in the algorithm") func swappedAutosensLimits() throws {
@@ -279,10 +369,10 @@ import Testing
     @Test(
         "The saved curve is the loop's Dynamic ISF at every glucose",
         arguments: loopScenarios
-    ) func savedCurveMatchesLoop(_ scenario: LoopScenario) throws {
+    ) func savedCurveMatchesLoop(_ scenario: LoopScenario) async throws {
         let preferences = loopPreferences(scenario)
         let profile = try loopProfile(scenario, preferences: preferences)
-        let variables = try loopVariables(scenario)
+        let variables = try await loopVariables(scenario, preferences: preferences)
         let sensitivity = try #require(profile.sens)
         let glucoseSteps = Array(stride(from: Curve.glucoseRange.lowerBound, through: Curve.glucoseRange.upperBound, by: 5))
 
@@ -319,9 +409,9 @@ import Testing
 
     @Test("An axis fits its data with room either end, on round steps") func scale() {
         func scale(_ data: ClosedRange<Double>, spacedFor reference: ClosedRange<Double>? = nil, decimals: Int = 0)
-            -> DynamicISFExplorerChart.AxisScale
+            -> ChartAxes.Scale
         {
-            DynamicISFExplorerChart.scale(fitting: data, spacedFor: reference ?? data, decimals: decimals)
+            ChartAxes.scale(fitting: data, spacedFor: reference ?? data, decimals: decimals)
         }
 
         // 27 to 63 with the margins, widened to steps of 10
@@ -362,17 +452,17 @@ import Testing
         weaker.autosensMin = 0.5
         let saved = try #require(Curve(inputs: weaker))
 
-        #expect(DynamicISFExplorerChart.sensitivityScale(for: curve, saved: nil, units: .mgdL).values == [
+        #expect(ChartAxes.sensitivityScale(for: curve, saved: nil, units: .mgdL).values == [
             20, 30, 40, 50, 60, 70
         ])
         // 30 to 90 between them, in steps for whichever is your settings
-        #expect(DynamicISFExplorerChart.sensitivityScale(for: curve, saved: saved, units: .mgdL).values == [
+        #expect(ChartAxes.sensitivityScale(for: curve, saved: saved, units: .mgdL).values == [
             20, 40, 60, 80, 100
         ])
-        #expect(DynamicISFExplorerChart.sensitivityScale(for: saved, saved: curve, units: .mgdL).values == [
+        #expect(ChartAxes.sensitivityScale(for: saved, saved: curve, units: .mgdL).values == [
             20, 30, 40, 50, 60, 70, 80, 90, 100
         ])
-        #expect(DynamicISFExplorerChart.sensitivityScale(for: curve, saved: nil, units: .mmolL).values == [
+        #expect(ChartAxes.sensitivityScale(for: curve, saved: nil, units: .mmolL).values == [
             1, 1.5, 2, 2.5, 3, 3.5
         ])
     }
@@ -386,15 +476,15 @@ import Testing
     }
 
     @Test("Chart positions convert between mg/dL and the user's units") func chartPositions() throws {
-        #expect(DynamicISFExplorerChart.plotted(100, units: .mgdL) == 100)
-        #expect(abs(DynamicISFExplorerChart.plotted(100, units: .mmolL) - 5.55) < 0.000001)
-        #expect(DynamicISFExplorerChart.glucose(fromPlotted: 102, units: .mgdL) == 102)
-        #expect(DynamicISFExplorerChart.glucose(fromPlotted: 5.55, units: .mmolL) == 100)
+        #expect(ChartAxes.plotted(100, units: .mgdL) == 100)
+        #expect(abs(ChartAxes.plotted(100, units: .mmolL) - 5.55) < 0.000001)
+        #expect(ChartAxes.glucose(fromPlotted: 102, units: .mgdL) == 102)
+        #expect(ChartAxes.glucose(fromPlotted: 5.55, units: .mmolL) == 100)
 
         // A drag to 5.6 mmol/L is 101 mg/dL, nearest the 100 mg/dL point, and one to 103 mg/dL is nearest 105
         let curve = try #require(Curve(inputs: inputs))
-        #expect(DynamicISFExplorerChart.point(atPlotted: 5.6, in: curve, units: .mmolL)?.glucose == 100)
-        #expect(DynamicISFExplorerChart.point(atPlotted: 103, in: curve, units: .mgdL)?.glucose == 105)
+        #expect(ChartAxes.point(atPlotted: 5.6, in: curve, units: .mmolL)?.glucose == 100)
+        #expect(ChartAxes.point(atPlotted: 103, in: curve, units: .mgdL)?.glucose == 105)
     }
 
     private func variables() -> TrioCustomOrefVariables {
@@ -511,39 +601,45 @@ import Testing
         )
     }
 
-    /// The variables `OpenAPS.prepareTrioCustomOrefVariables` stores for these totals, read back from JSON as both the
-    /// loop and the explorer read them.
-    private func loopVariables(_ scenario: LoopScenario) throws -> TrioCustomOrefVariables {
-        let totals = scenario.olderTDD + scenario.recentTDD
-        let currentTDD = totals.last ?? 0
-        let averageTDDLastTwoHours = scenario.recentTDD.reduce(0, +) / Decimal(max(scenario.recentTDD.count, 1))
-        let averageTDDLastTenDays = totals.reduce(0, +) / Decimal(max(totals.count, 1))
-        let weightedTDD = scenario.weightPercentage * averageTDDLastTwoHours +
-            (1 - scenario.weightPercentage) * averageTDDLastTenDays
+    /// The variables `OpenAPS.prepareTrioCustomOrefVariables` stores for these totals and preferences, read back from
+    /// JSON as both the loop and the explorer read them.
+    private func loopVariables(_ scenario: LoopScenario, preferences: Preferences) async throws -> TrioCustomOrefVariables {
+        let coreDataStack = try await CoreDataStack.createForTests()
+        let context = coreDataStack.newTaskContext()
+        let now = Date()
+        try await context.perform {
+            func store(_ total: Decimal, minutesAgo: Int) {
+                let tdd = TDDStored(context: context)
+                tdd.date = now.addingTimeInterval(-Double(minutesAgo) * 60)
+                tdd.total = NSDecimalNumber(decimal: total)
+            }
 
-        let variables = TrioCustomOrefVariables(
-            average_total_data: currentTDD > 0 ? averageTDDLastTenDays : 0,
-            weightedAverage: currentTDD > 0 ? weightedTDD : 1,
-            currentTDD: currentTDD,
-            past2hoursAverage: currentTDD > 0 ? averageTDDLastTwoHours : 0,
-            date: Date(),
-            overridePercentage: 100,
-            useOverride: false,
-            duration: 0,
-            unlimited: true,
-            overrideTarget: 0,
-            smbIsOff: false,
-            advancedSettings: false,
-            isfAndCr: false,
-            isf: false,
-            cr: false,
-            smbIsScheduledOff: false,
-            start: 0,
-            end: 0,
-            smbMinutes: 30,
-            uamMinutes: 30
+            // Older totals an hour apart up to three hours ago, and recent ones five minutes apart up to five minutes
+            // ago, well either side of the loop's two-hour cut-off
+            for (index, total) in scenario.olderTDD.reversed().enumerated() {
+                store(total, minutesAgo: (index + 3) * 60)
+            }
+            for (index, total) in scenario.recentTDD.reversed().enumerated() {
+                store(total, minutesAgo: (index + 1) * 5)
+            }
+            try context.save()
+        }
+
+        // The loop reads the weighting from the preferences file, and nothing from the other storages
+        let storage = MockFileStorage()
+        storage.save(preferences, as: OpenAPS.Settings.preferences)
+        let openAPS = OpenAPS(
+            storage: storage,
+            tddStorage: MockTDDStorage(),
+            glucoseStorage: TrioApp.resolver.resolve(GlucoseStorage.self)!,
+            carbsStorage: TrioApp.resolver.resolve(CarbsStorage.self)!
         )
-        return try #require(TrioCustomOrefVariables(from: variables.rawJSON))
+        let rawVariables = try await openAPS.prepareTrioCustomOrefVariables(on: context)
+        let variables = try JSONBridge.trioCustomOrefVariables(from: rawVariables)
+
+        // Whether the loop found totals in the last two hours, as the scenario stored them
+        #expect((variables.past2hoursAverage == 0) == scenario.recentTDD.isEmpty)
+        return variables
     }
 }
 
@@ -645,7 +741,7 @@ import Testing
 
         // 50.27 U, shown as 50.3 U, becomes 50.3 U
         state.inputs.weightPercentage = 0.5
-        #expect(state.isChanged(\.weightedTDD))
+        #expect(state.inputs.weightedTDD != state.savedInputs.weightedTDD)
         #expect(!state.isWeightedTDDChanged)
 
         // And then 50.39 U, shown as 50.4 U

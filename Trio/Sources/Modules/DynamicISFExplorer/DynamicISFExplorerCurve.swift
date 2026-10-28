@@ -71,12 +71,16 @@ extension DynamicISFExplorer {
 
         static let glucoseRange: ClosedRange<Decimal> = 40 ... 400
 
-        /// Why Dynamic ISF would be off, by the checks `DynamicISF.calculate` makes.
+        /// Why there's no curve: Dynamic ISF would be off, by the checks `DynamicISF.calculate` makes, or its limits
+        /// can't be charted.
         enum Unavailable: CaseIterable {
             /// The total daily dose it would use is zero.
             case noTDD
             /// Autosens Max and Min are equal, or both on the same side of 100%, so it has no room to adjust.
             case noAutosensRoom
+            /// Autosens Max or Min is 0% or below, which only a hand-edited settings file can set. The loop would still
+            /// run Dynamic ISF, but the ISF range it allows would have no weakest end to chart.
+            case noWeakestLimit
         }
 
         /// Profile ISF, before the dynamic ratio is applied.
@@ -85,10 +89,15 @@ extension DynamicISFExplorer {
         let sensitivityLimits: ClosedRange<Decimal>
         let points: [Point]
 
-        /// Returns `nil` when Dynamic ISF would be off for these inputs, for a reason in `unavailable(for:)`.
+        /// Returns `nil` when Dynamic ISF would be off or can't be charted, for a reason in `unavailable(for:)`.
         init?(inputs: Inputs) {
-            let (profile, preferences, variables) = Self.algorithmInputs(inputs)
+            // The algorithm accepts the limits either way round
+            let strongest = max(inputs.autosensMin, inputs.autosensMax)
+            let weakest = min(inputs.autosensMin, inputs.autosensMax)
+            // Dividing by a limit of 0% or below would leave the ISF range without a weakest end
+            guard weakest > 0 else { return nil }
 
+            let (profile, preferences, variables) = Self.algorithmInputs(inputs)
             var points: [Point] = []
             for glucose in stride(from: Self.glucoseRange.lowerBound, through: Self.glucoseRange.upperBound, by: 5) {
                 guard let result = DynamicISF.calculate(
@@ -106,16 +115,13 @@ extension DynamicISFExplorer {
                 points.append(Point(glucose: glucose, ratio: result.ratio, sensitivity: sensitivity))
             }
 
-            // The algorithm accepts the limits either way round
-            let strongest = max(inputs.autosensMin, inputs.autosensMax)
-            let weakest = min(inputs.autosensMin, inputs.autosensMax)
             profileSensitivity = inputs.sensitivity
             sensitivityLimits = profileSensitivity / strongest ... profileSensitivity / weakest
             self.points = points
         }
 
-        /// What stops Dynamic ISF for these inputs, in the order the algorithm checks, using its own TDD choice and
-        /// Autosens check. Empty when there's a curve.
+        /// What stops a curve for these inputs: what turns Dynamic ISF off, in the order the algorithm checks, using its
+        /// own TDD choice and Autosens check, then a limit too low to chart. Empty when there's a curve.
         static func unavailable(for inputs: Inputs) -> [Unavailable] {
             let (profile, preferences, variables) = algorithmInputs(inputs)
             var reasons: [Unavailable] = []
@@ -124,6 +130,9 @@ extension DynamicISFExplorer {
             }
             if preferences.dynamicIsfState(profile: profile, trioCustomOrefVariables: variables) == .off {
                 reasons.append(.noAutosensRoom)
+            }
+            if min(inputs.autosensMin, inputs.autosensMax) <= 0 {
+                reasons.append(.noWeakestLimit)
             }
             return reasons
         }
@@ -150,6 +159,19 @@ extension DynamicISFExplorer {
 
         func point(nearest glucose: Decimal) -> Point? {
             points.min { abs($0.glucose - glucose) < abs($1.glucose - glucose) }
+        }
+
+        /// The glucose range, in mg/dL, over which Dynamic ISF changes the ISF as written in `units`: from the last
+        /// point showing the curve's first ISF to the first showing its last. These are usually the Sensitivity
+        /// Limits, which a sigmoid curve only nears, so its range ends where the limit shows. `nil` for a flat curve.
+        func adjustingRange(units: GlucoseUnits) -> ClosedRange<Decimal>? {
+            let shown = points.map { Format.glucose($0.sensitivity, units: units) }
+            // The first point past the curve's first ISF, and the last short of its last
+            guard let first = shown.first, let last = shown.last,
+                  let leaving = shown.firstIndex(where: { $0 != first }),
+                  let reaching = shown.lastIndex(where: { $0 != last })
+            else { return nil }
+            return points[leaving - 1].glucose ... points[reaching + 1].glucose
         }
     }
 }

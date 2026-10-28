@@ -25026,7 +25026,7 @@
       }
     },
     "10-Day Average" : {
-
+      "comment" : "Row for the total daily dose averaged over 10 days"
     },
     "10%:" : {
       "localizations" : {
@@ -39132,6 +39132,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "調整"
+          }
+        }
+      }
+    },
+    "Adjusts ISF from %@ to %@ %@ as glucose rises from %@ to %@ %@" : {
+      "comment" : "Accessibility: Dynamic ISF Explorer chart summary: ISFs and their unit, then glucose values and their unit",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Adjusts ISF from %1$@ to %2$@ %3$@ as glucose rises from %4$@ to %5$@ %6$@"
           }
         }
       }
@@ -54567,6 +54578,9 @@
           }
         }
       }
+    },
+    "Autosens Max and Min need to be above zero to chart Dynamic ISF." : {
+      "comment" : "Shown in place of the Dynamic ISF Explorer's chart"
     },
     "Autosens Max sets the maximum Autosens Ratio used by Autosens, Dynamic ISF, and Sigmoid Formula." : {
       "localizations" : {
@@ -119179,10 +119193,10 @@
       }
     },
     "Dynamic ISF chart" : {
-
+      "comment" : "Accessibility: name of the Dynamic ISF Explorer's chart"
     },
     "Dynamic ISF Explorer" : {
-
+      "comment" : "Title of the screen that charts Dynamic ISF"
     },
     "Dynamic ISF is off, so those terms will not show up." : {
       "localizations" : {
@@ -119315,10 +119329,10 @@
       }
     },
     "Dynamic ISF needs a total daily dose above zero." : {
-
+      "comment" : "Shown in place of the Dynamic ISF Explorer's chart"
     },
     "Dynamic ISF needs Autosens Max and Min to differ, with one at least 100% and the other at most 100%." : {
-
+      "comment" : "Shown in place of the Dynamic ISF Explorer's chart"
     },
     "Dynamic ISF produces a Dynamic Ratio, replacing the Autosens Ratio, determining how much your profile ISF will be adjusted every loop cycle, ensuring it stays within safe limits set by your Autosens Min/Max settings. It provides more precise insulin dosing by responding to changes in insulin needs throughout the day." : {
       "localizations" : {
@@ -147187,7 +147201,7 @@
       }
     },
     "From your schedule for this time of day." : {
-
+      "comment" : "Footer below the profile ISF and target"
     },
     "Full Bolus" : {
       "comment" : "For the  Bolus View pop-up",
@@ -176553,13 +176567,13 @@
         }
       }
     },
-    "ISF from %@ at low glucose to %@ at high glucose, in %@" : {
-      "comment" : "Accessibility: chart summary",
+    "ISF is %@ %@ at all glucose levels" : {
+      "comment" : "Accessibility: Dynamic ISF Explorer chart summary for a flat curve: an ISF and its unit",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "ISF from %1$@ at low glucose to %2$@ at high glucose, in %3$@"
+            "value" : "ISF is %1$@ %2$@ at all glucose levels"
           }
         }
       }
@@ -240942,7 +240956,7 @@
       }
     },
     "Profile ISF" : {
-
+      "comment" : "Legend for the line at the scheduled ISF"
     },
     "Profile Override" : {
       "comment" : "Service Section",
@@ -253146,7 +253160,7 @@
       }
     },
     "Reset" : {
-
+      "comment" : "Button that puts the Dynamic ISF Explorer's values back to the user's settings"
     },
     "Reset and retry send" : {
       "localizations" : {
@@ -260429,7 +260443,7 @@
       }
     },
     "See how Dynamic ISF adjusts ISF as glucose changes, and try different settings without saving them." : {
-
+      "comment" : "Footer below the link to the Dynamic ISF Explorer"
     },
     "See what's new in this version." : {
       "localizations" : {
@@ -271810,7 +271824,7 @@
       }
     },
     "Shows what Dynamic ISF does when enabled and active. Starts from your current settings and TDD. Does not consider overrides or temp targets. Changes here are not saved." : {
-
+      "comment" : "Introduction to the Dynamic ISF Explorer, which is the subject of Shows, Starts and Does"
     },
     "Sigmoid" : {
       "localizations" : {
@@ -341456,7 +341470,7 @@
       "comment" : "Hypoglycemia component multiplied by its GRI weight."
     },
     "Weighted TDD" : {
-
+      "comment" : "Row for the weighted average of the TDDs above"
     },
     "Welcome to Trio" : {
       "localizations" : {
@@ -347109,7 +347123,7 @@
       }
     },
     "Without a custom peak time, Dynamic ISF uses 65 min for rapid-acting and 50 min for ultra-rapid insulin." : {
-
+      "comment" : "Footer below Insulin Peak Time in the Dynamic ISF Explorer; min means minutes"
     },
     "𝒳 = Max SMB Basal Minutes" : {
       "localizations" : {
@@ -351174,7 +351188,7 @@
       }
     },
     "Your Settings" : {
-
+      "comment" : "Legend for the curve of the user's settings"
     },
     "Your therapy settings (basal rates, carb ratios, insulin sensitivities and glucose targets) are carried over." : {
       "localizations" : {

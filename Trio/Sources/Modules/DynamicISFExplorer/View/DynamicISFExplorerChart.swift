@@ -24,11 +24,11 @@ struct DynamicISFExplorerChart: View {
     private static let keySize = CGSize(width: 18, height: 10)
 
     private var selectedPoint: DynamicISFExplorer.Curve.Point? {
-        selection.flatMap { Self.point(atPlotted: $0, in: curve, units: units) }
+        selection.flatMap { DynamicISFExplorer.ChartAxes.point(atPlotted: $0, in: curve, units: units) }
     }
 
-    private var sensitivityScale: AxisScale {
-        Self.sensitivityScale(for: curve, saved: savedCurve, units: units)
+    private var sensitivityScale: DynamicISFExplorer.ChartAxes.Scale {
+        DynamicISFExplorer.ChartAxes.sensitivityScale(for: curve, saved: savedCurve, units: units)
     }
 
     /// Room at either end of the glucose axis, so the curves don't run into the chart's edges.
@@ -131,7 +131,7 @@ struct DynamicISFExplorerChart: View {
         // Beside the axis values, which Charts turns to run along the axis
         .chartYAxisLabel(String(localized: "ISF (\(units.sensitivityUnit.displayName))"), position: .trailing, alignment: .center)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text("Dynamic ISF chart"))
+        .accessibilityLabel(Text("Dynamic ISF chart", comment: "Accessibility: name of the Dynamic ISF Explorer's chart"))
         .accessibilityValue(Text(accessibilitySummary))
     }
 
@@ -150,11 +150,15 @@ struct DynamicISFExplorerChart: View {
             GridRow {
                 legendItem(String(localized: "Dynamic ISF")) { lineKey(Self.curveColor, Self.curveStroke) }
                 if savedCurve != nil {
-                    legendItem(String(localized: "Your Settings")) { lineKey(Self.savedColor, Self.savedStroke) }
+                    legendItem(String(localized: "Your Settings", comment: "Legend for the curve of the user's settings")) {
+                        lineKey(Self.savedColor, Self.savedStroke)
+                    }
                 }
             }
             GridRow {
-                legendItem(String(localized: "Profile ISF")) { lineKey(Self.profileColor, Self.profileStroke) }
+                legendItem(String(localized: "Profile ISF", comment: "Legend for the line at the scheduled ISF")) {
+                    lineKey(Self.profileColor, Self.profileStroke)
+                }
                 legendItem(String(localized: "Sensitivity Limits")) {
                     RoundedRectangle(cornerRadius: 2).fill(Self.limitsColor)
                         .frame(width: Self.keySize.width, height: Self.keySize.height)
@@ -185,7 +189,9 @@ struct DynamicISFExplorerChart: View {
     /// The point being scrubbed, in one line styled like Home's chart readout (`ChartSelectionRow`). Its units are on
     /// the axes, as Home leaves the glucose unit to its axis.
     @ViewBuilder private var readout: some View {
-        if let shown = selection ?? readoutSelection, let point = Self.point(atPlotted: shown, in: curve, units: units) {
+        if let shown = selection ?? readoutSelection,
+           let point = DynamicISFExplorer.ChartAxes.point(atPlotted: shown, in: curve, units: units)
+        {
             // The row steps down a type size until it fits. Long translations of the labels and large text sizes can
             // outgrow even the smallest, so the ratio's name goes last, and what's left shrinks rather than spill out
             ViewThatFits(in: .horizontal) {
@@ -234,13 +240,25 @@ struct DynamicISFExplorerChart: View {
         }
     }
 
+    /// Where Dynamic ISF changes the ISF, and from what to what. The ISF at the curve's ends alone would barely move
+    /// with the settings, as they usually sit on the Sensitivity Limits.
     private var accessibilitySummary: String {
         guard let first = curve.points.first, let last = curve.points.last else { return "" }
         let low = formatted(first.sensitivity)
         let high = formatted(last.sensitivity)
+        let isfUnit = units.sensitivityUnit.spokenName
+        let glucoseUnit = units.spokenValue
+        guard let adjusting = curve.adjustingRange(units: units) else {
+            return String(
+                localized: "ISF is \(low) \(isfUnit) at all glucose levels",
+                comment: "Accessibility: Dynamic ISF Explorer chart summary for a flat curve: an ISF and its unit"
+            )
+        }
+        let start = formatted(adjusting.lowerBound)
+        let end = formatted(adjusting.upperBound)
         return String(
-            localized: "ISF from \(low) at low glucose to \(high) at high glucose, in \(units.sensitivityUnit.spokenName)",
-            comment: "Accessibility: chart summary"
+            localized: "Adjusts ISF from \(low) to \(high) \(isfUnit) as glucose rises from \(start) to \(end) \(glucoseUnit)",
+            comment: "Accessibility: Dynamic ISF Explorer chart summary: ISFs and their unit, then glucose values and their unit"
         )
     }
 
@@ -253,107 +271,7 @@ struct DynamicISFExplorerChart: View {
         String(localized: "%", comment: "Percentage symbol")
     }
 
-    /// An axis's gridlines, a whole number of steps apart, from its bottom edge to its top.
-    struct AxisScale: Equatable {
-        let step: Decimal
-        let values: [Double]
-
-        var domain: ClosedRange<Double> {
-            values[0] ... values[values.count - 1]
-        }
-
-        /// The whole steps that cover `range`, at least one of them.
-        init(covering range: ClosedRange<Double>, step: Decimal) {
-            let size = Double(truncating: step as NSNumber)
-            // The epsilons keep Double noise from adding a whole step
-            let lowest = Int(((range.lowerBound / size) + 1E-9).rounded(.down))
-            let highest = max(Int(((range.upperBound / size) - 1E-9).rounded(.up)), lowest + 1)
-            self.step = step
-            // Counted in exact steps, so the edges are gridlines without any noise to drop them
-            values = (lowest ... highest).map { Double(truncating: (Decimal($0) * step) as NSNumber) }
-        }
-    }
-
-    /// The ISF axis, fitted to the Sensitivity Limits of both curves, which hold the curves and the profile ISF. Its
-    /// gridlines are spaced for the user's settings, so they hold while exploring.
-    static func sensitivityScale(
-        for curve: DynamicISFExplorer.Curve,
-        saved: DynamicISFExplorer.Curve?,
-        units: GlucoseUnits
-    ) -> AxisScale {
-        let settings = (saved ?? curve).sensitivityLimits
-        let limits = min(curve.sensitivityLimits.lowerBound, settings.lowerBound) ...
-            max(curve.sensitivityLimits.upperBound, settings.upperBound)
-        return scale(
-            fitting: plotted(limits.lowerBound, units: units) ... plotted(limits.upperBound, units: units),
-            spacedFor: plotted(settings.lowerBound, units: units) ... plotted(settings.upperBound, units: units),
-            decimals: units == .mgdL ? 0 : 1
-        )
-    }
-
-    /// An axis fitting `data` with a tenth of its span spare at each end, in whole steps so its edges and gridlines
-    /// land on round values. The step suits `reference` with about `intervals` of them, and is only coarsened once
-    /// `data` would need more than `maxIntervals`, so the gridlines hold while `data` grows and stepping back restores
-    /// them. Steps are 1, 2, 2.5 or 5 times a power of ten, written in no more than `decimals` places. It never goes
-    /// below zero.
-    static func scale(
-        fitting data: ClosedRange<Double>,
-        spacedFor reference: ClosedRange<Double>,
-        decimals: Int,
-        intervals: Double = 5,
-        maxIntervals: Int = 8
-    ) -> AxisScale {
-        let covered = withMargins(data)
-        let suited = withMargins(reference)
-        let rough = (suited.upperBound - suited.lowerBound) / intervals
-
-        let steps = Self.steps(decimals: decimals)
-        var index = steps.firstIndex { Double(truncating: $0 as NSNumber) >= rough } ?? steps.count - 1
-        var scale = AxisScale(covering: covered, step: steps[index])
-        while scale.values.count - 1 > maxIntervals, index < steps.count - 1 {
-            index += 1
-            scale = AxisScale(covering: covered, step: steps[index])
-        }
-        return scale
-    }
-
-    /// `range` with a tenth of its span spare at each end, or a tenth of its value for a single value, above zero.
-    private static func withMargins(_ range: ClosedRange<Double>) -> ClosedRange<Double> {
-        let span = range.upperBound - range.lowerBound
-        let margin = (span > 0 ? span : max(abs(range.upperBound), 1)) / 10
-        return max(0, range.lowerBound - margin) ... range.upperBound + margin
-    }
-
-    /// Steps of 1, 2, 2.5 and 5 times a power of ten, smallest first, written in no more than `decimals` places.
-    private static func steps(decimals: Int) -> [Decimal] {
-        (-decimals ... 6).flatMap { exponent in
-            [10, 20, 25, 50]
-                // 2.5 needs a place more than the others
-                .filter { $0 != 25 || exponent > -decimals }
-                .map { Decimal(sign: .plus, exponent: exponent - 1, significand: Decimal($0)) }
-        }
-    }
-
-    /// Glucose and ISF share a unit conversion, unrounded here so the curve stays smooth in mmol/L.
-    static func plotted(_ value: Decimal, units: GlucoseUnits) -> Double {
-        Double(truncating: (units == .mgdL ? value : value * GlucoseUnits.exchangeRate) as NSNumber)
-    }
-
-    /// The mg/dL glucose at a position on the chart's glucose axis.
-    static func glucose(fromPlotted value: Double, units: GlucoseUnits) -> Decimal {
-        units == .mgdL ? Decimal(value) : value.asMgdL
-    }
-
-    /// The curve's point nearest a position on the chart's glucose axis, such as where it's scrubbed to.
-    static func point(
-        atPlotted value: Double,
-        in curve: DynamicISFExplorer.Curve,
-        units: GlucoseUnits
-    ) -> DynamicISFExplorer.Curve.Point? {
-        curve.point(nearest: glucose(fromPlotted: value, units: units))
-    }
-
     private func plotted(_ value: Decimal) -> Double {
-        Self.plotted(value, units: units)
+        DynamicISFExplorer.ChartAxes.plotted(value, units: units)
     }
 }
