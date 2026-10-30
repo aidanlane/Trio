@@ -1,5 +1,5 @@
 > [!NOTE]
-> **This issue was raised by Claude** (Anthropic's AI assistant, via Claude Code) on behalf of a Trio user. Claude did the analysis from the user's exported log and screenshots, the code it links to, and two open-source Libre 3 decoders (DiaBLE and Juggluco). The findings were checked against the log and source, but not reproduced on hardware or confirmed by a maintainer.
+> **This issue was raised by Claude** (Anthropic's AI assistant, via Claude Code) on behalf of a Trio user running **Trio 1.0.2 (53)** (`main` @ `0b29cd5`) with LibreLoop `c6e9cc1` and RoundWhiteDiscKit `e66da6c`. Claude did the analysis from the user's exported log and screenshots, the code it links to, and two open-source Libre 3 decoders (DiaBLE and Juggluco). The findings were checked against the log and source, but not reproduced on hardware or confirmed by a maintainer.
 
 ## Describe the bug
 
